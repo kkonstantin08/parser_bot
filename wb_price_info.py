@@ -1,32 +1,61 @@
-import requests
+# schedule
+import time
+
+# import schedule
 from bs4 import BeautifulSoup
-import json
+from selenium import webdriver as wd
+from selenium.webdriver.chrome.options import Options
+import requests
+import os
 
-# URL страницы товара
-url = 'https://www.wildberries.ru/catalog/8707379/detail.aspx'
+url = 'https://www.wildberries.ru/catalog/78504395/detail.aspx'
 
-# Отправляем запрос на страницу
-response = requests.get(url)
 
-# Парсим HTML страницу
-soup = BeautifulSoup(response.text, 'html.parser')
+# options = Options()
+# options.add_argument('--headless')
+# browser = wd.Chrome(options=options)
+# browser.get(url)
+def func():
+    global url
+    # options = Options()
+    # options.add_argument('--headless')
+    browser = wd.Chrome()
+    browser.get(url)
 
-# Извлекаем данные о товаре
-product_data = []
-for product in soup.find_all('div', class_='dtList i-dtList j-card-item'):
-    title = product.find('strong', class_='brand-name').text
-    price = product.find('ins', class_='lower-price').text
-    old_price = product.find('del', class_='c-text-base').text if product.find('del', class_='c-text-base') else None
-    discount = product.find('span', class_='sale').text if product.find('span', class_='sale') else None
+    time.sleep(3)
 
-    product_data.append({
-        'title': title,
-        'price': price,
-        'old_price': old_price,
-        'discount': discount
-    })
+    content = BeautifulSoup(browser.page_source, 'lxml')
 
-# Преобразуем данные в JSON
-json_data = json.dumps(product_data, ensure_ascii=False)
+    price1 = (content.find('span', {'class': 'price-block__wallet-price'}).text.split())[0]
+    price2 = (content.find('ins', {'class': 'price-block__final-price wallet'}).text.split())[0]
+    title = content.find('h1', {'class': 'product-page__title'}).text
+    # img = content.find('img', {'class': 'product-zoom__preview'})
+    # file = open(title + '.png', 'wb')
+    # file.write(requests.get(img).content)
+    # file.close()
 
-print(json_data)
+    print(price1, price2, title)
+
+
+func()
+# schedule.every().day.at('14:40').do(func)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
+
+
+# images = soup.find_all('img')
+# # Проверяем, есть ли хотя бы одно изображение
+# if images:
+#     image_url = images[0]['src']  # Берем URL первого изображения
+#
+#     # Если URL изображения является относительным, добавляем базовый URL
+#     if not image_url.startswith('http'):
+#         image_url = os.path.join(url, image_url)
+#
+#     image_data = requests.get(image_url).content  # Загружаем данные изображения
+#
+#     with open('image.jpg', 'wb') as handler:  # Записываем данные изображения в файл
+#         handler.write(image_data)
+# else:
+#     print("На странице нет изображений.")
